@@ -1,51 +1,13 @@
-from datetime import datetime
 from repositories.leitura_repository import LeituraRepository
-from entities.models import LeituraSensor, Sensor, Anomalia
-from config.database import db
+from repositories.anomalia_repository import AnomaliaRepository
+from entities.leitura import LeituraSensor
+from entities.anomalia import Anomalia
+from datetime import datetime
 
 class LeituraService:
     @staticmethod
-    def criar_leitura(dados):
-        # Regra de Negócio 1: O sensor associado tem de existir
-        sensor_id = dados.get('sensor_id')
-        sensor = Sensor.query.get(sensor_id)
-        if not sensor:
-            raise ValueError("O sensor informado não existe.")
-
-        valor = dados.get('valor')
-        nivel_bateria = dados.get('nivel_bateria')
-
-        if valor is None or nivel_bateria is None:
-            raise ValueError("O valor da leitura e o nível da bateria são obrigatórios.")
-
-        # Regra de Negócio 2: Validação de bateria (entre 0 e 100%)
-        if not (0 <= int(nivel_bateria) <= 100):
-            raise ValueError("O nível da bateria tem de estar compreendido entre 0 e 100.")
-
-        nova_leitura = LeituraSensor(
-            sensor_id=sensor_id,
-            valor=valor,
-            nivel_bateria=nivel_bateria,
-            data_hora=datetime.now()
-        )
-        
-        LeituraRepository.salvar(nova_leitura)
-
-        # Regra de Negócio 3 (Extra para Anomalias): Se o valor ultrapassar um limite crítico (ex: > 90), gera automaticamente uma anomalia
-        if float(valor) > 90.0:
-            anomalia = Anomalia(
-                leitura_id=nova_leitura.id,
-                descricao_alerta=f"Valor crítico detetado: {valor}",
-                severidade="Alta"
-            )
-            db.session.add(anomalia)
-            db.session.commit()
-
-        return nova_leitura
-
-    @staticmethod
     def listar_leituras():
-        leituras = LeituraRepository.listar_todas()
+        leituras = LeituraRepository.listar_todos()
         return [
             {
                 "id": l.id,
@@ -57,9 +19,38 @@ class LeituraService:
         ]
 
     @staticmethod
-    def deletar_leitura(leitura_id):
-        leitura = LeituraRepository.buscar_por_id(leitura_id)
+    def criar_leitura(dados):
+        data_hora_str = dados.get("data_hora")
+        data_hora = datetime.strptime(data_hora_str, "%Y-%m-%d %H:%M:%S") if data_hora_str else datetime.utcnow()
+        
+        valor = float(dados.get("valor"))
+
+        nova_leitura = LeituraSensor(
+            sensor_id=dados.get("sensor_id"),
+            valor=valor,
+            nivel_bateria=dados.get("nivel_bateria"),
+            data_hora=data_hora
+        )
+        LeituraRepository.salvar(nova_leitura)
+
+        # REGRA DE NEGÓCIO: Se o valor ultrapassar 90.0, gera uma anomalia automática!
+        if valor > 90.0:
+            from config.database import db
+            db.session.flush() # Garante que o ID da leitura foi gerado no banco
+            
+            nova_anomalia = Anomalia(
+                leitura_id=nova_leitura.id,
+                descricao_alerta=f"Alerta crítico: Valor {valor} ultrapassou o limite seguro de 90.0!",
+                severidade="Crítica"
+            )
+            AnomaliaRepository.salvar(nova_anomalia)
+
+        return nova_leitura
+
+    @staticmethod
+    def deletar_leitura(id):
+        leitura = LeituraRepository.buscar_por_id(id)
         if not leitura:
-            raise ValueError("Leitura não encontrada.")
-        LeituraRepository.deletar(leitura)
+            return False
+        LeituraRepository.excluir(leitura)
         return True

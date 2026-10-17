@@ -1,9 +1,10 @@
 from repositories.anomalia_repository import AnomaliaRepository
+from entities.anomalia import Anomalia
 
 class AnomaliaService:
     @staticmethod
     def listar_anomalias():
-        anomalias = AnomaliaRepository.listar_todas()
+        anomalias = AnomaliaRepository.listar_todos()
         return [
             {
                 "id": a.id,
@@ -14,9 +15,19 @@ class AnomaliaService:
         ]
 
     @staticmethod
-    def deletar_anomalia(anomalia_id):
-        anomalia = AnomaliaRepository.buscar_por_id(anomalia_id)
+    def criar_anomalia(dados):
+        nova_anomalia = Anomalia(
+            leitura_id=dados.get("leitura_id"),
+            descricao_alerta=dados.get("descricao_alerta"),
+            severidade=dados.get("severidade")
+        )
+        AnomaliaRepository.salvar(nova_anomalia)
+        return nova_anomalia
+
+    @staticmethod
+    def deletar_anomalia(id):
+        anomalia = AnomaliaRepository.buscar_por_id(id)
         if not anomalia:
-            raise ValueError("Anomalia não encontrada.")
-        AnomaliaRepository.deletar(anomalia)
+            return False
+        AnomaliaRepository.excluir(anomalia)
         return True

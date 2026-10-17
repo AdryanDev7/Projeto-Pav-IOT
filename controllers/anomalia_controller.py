@@ -1,5 +1,5 @@
-from flask import jsonify
 from services.anomalia_service import AnomaliaService
+from flask import jsonify
 
 class AnomaliaController:
     @staticmethod

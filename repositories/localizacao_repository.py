@@ -1,4 +1,4 @@
-from entities.models import Localizacao
+from entities.localizacao import Localizacao
 from config.database import db
 
 class LocalizacaoRepository:
@@ -9,18 +9,14 @@ class LocalizacaoRepository:
         return localizacao
 
     @staticmethod
-    def listar_todas():
+    def listar_todos():
         return Localizacao.query.all()
 
     @staticmethod
-    def buscar_por_id(localizacao_id):
-        return Localizacao.query.get(localizacao_id)
+    def buscar_por_id(id):
+        return Localizacao.query.get(id)
 
     @staticmethod
-    def deletar(localizacao):
+    def excluir(localizacao):
         db.session.delete(localizacao)
-        db.session.commit()
-
-    @staticmethod
-    def atualizar():
         db.session.commit()

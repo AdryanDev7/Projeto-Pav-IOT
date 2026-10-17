@@ -1,4 +1,4 @@
-from entities.models import LeituraSensor
+from entities.leitura import LeituraSensor
 from config.database import db
 
 class LeituraRepository:
@@ -9,14 +9,14 @@ class LeituraRepository:
         return leitura
 
     @staticmethod
-    def listar_todas():
+    def listar_todos():
         return LeituraSensor.query.all()
 
     @staticmethod
-    def buscar_por_id(leitura_id):
-        return LeituraSensor.query.get(leitura_id)
+    def buscar_por_id(id):
+        return LeituraSensor.query.get(id)
 
     @staticmethod
-    def deletar(leitura):
+    def excluir(leitura):
         db.session.delete(leitura)
         db.session.commit()

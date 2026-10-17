@@ -27,6 +27,20 @@ class SensorController:
         return jsonify(sensores), 200
 
     @staticmethod
+    def atualizar_sensor(sensor_id):
+        try:
+            dados = request.get_json()
+            sensor = SensorService.atualizar_sensor(sensor_id, dados)
+            return jsonify({
+                "mensagem": "Sensor atualizado com sucesso!",
+                "id": sensor.id
+            }), 200
+        except ValueError as e:
+            return jsonify({"erro": str(e)}), 400
+        except Exception as e:
+            return jsonify({"erro": "Erro interno no servidor: " + str(e)}), 500
+
+    @staticmethod
     def deletar_sensor(sensor_id):
         try:
             SensorService.deletar_sensor(sensor_id)

@@ -1,4 +1,4 @@
-from entities.models import Sensor
+from entities.sensor import Sensor
 from config.database import db
 
 class SensorRepository:
@@ -13,10 +13,10 @@ class SensorRepository:
         return Sensor.query.all()
 
     @staticmethod
-    def buscar_por_id(sensor_id):
-        return Sensor.query.get(sensor_id)
+    def buscar_por_id(id):
+        return Sensor.query.get(id)
 
     @staticmethod
-    def deletar(sensor):
+    def excluir(sensor):
         db.session.delete(sensor)
         db.session.commit()

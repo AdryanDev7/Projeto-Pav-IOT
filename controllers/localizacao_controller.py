@@ -34,3 +34,13 @@ class LocalizacaoController:
             return jsonify({"erro": str(e)}), 404
         except Exception as e:
             return jsonify({"erro": "Erro interno no servidor: " + str(e)}), 500
+
+    @staticmethod
+    def deletar_localizacao(localizacao_id):
+        try:
+            LocalizacaoService.deletar_localizacao(localizacao_id)
+            return jsonify({"mensagem": "Localização deletada com sucesso!"}), 200
+        except ValueError as e:
+            return jsonify({"erro": str(e)}), 404
+        except Exception as e:
+            return jsonify({"erro": "Erro interno no servidor: " + str(e)}), 500

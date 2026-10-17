@@ -1,8 +1,3 @@
-
-
--- Como o comando \c é específico do psql, vamos garantir a conexão ou rodar os comandos abaixo após conectar no banco iot_db.
--- Se preferir rodar direto no DBeaver, você cria o banco "iot_db" e executa o script dentro dele.
-
 CREATE TABLE localizacoes (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
@@ -16,7 +11,8 @@ CREATE TABLE sensores (
     codigo_serial VARCHAR(50) UNIQUE NOT NULL,
     tipo VARCHAR(50) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'Ativo',
-    localizacao_id INT REFERENCES localizacoes(id) ON DELETE RESTRICT
+    localizacao_id INT REFERENCES localizacoes(id) ON DELETE RESTRICT,
+    nivel_bateria INT NOT NULL  
 );
 
 CREATE TABLE leituras_sensores (
