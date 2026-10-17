@@ -1,17 +1,7 @@
-from flask import Blueprint, jsonify
-from entities.models import Anomalia
+from flask import Blueprint
+from controllers.anomalia_controller import AnomaliaController
 
 anomalia_bp = Blueprint('anomalia_bp', __name__, url_prefix='/api/anomalias')
 
-@anomalia_bp.route('', methods=['GET'])
-def listar_anomalias():
-    anomalias = Anomalia.query.all()
-    resultado = [
-        {
-            "id": a.id,
-            "leitura_id": a.leitura_id,
-            "descricao_alerta": a.descricao_alerta,
-            "severidade": a.severidade
-        } for a in anomalias
-    ]
-    return jsonify(resultado), 200
+anomalia_bp.route('', methods=['GET'])(AnomaliaController.listar_anomalias)
+anomalia_bp.route('/<int:anomalia_id>', methods=['DELETE'])(AnomaliaController.deletar_anomalia)
