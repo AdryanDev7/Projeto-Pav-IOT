@@ -1,0 +1,24 @@
+# Utilizar uma imagem base oficial do Python adequada
+FROM python:3.13-slim
+
+# Definir o diretório de trabalho dentro do contentor
+WORKDIR /app
+
+# Instalar dependências do sistema necessárias para compilação do psycopg2 se necessário
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copiar os ficheiros de dependências e instalá-las
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar todo o código fonte da API para o diretório de trabalho
+COPY . .
+
+# Expor a porta em que o Flask vai executar
+EXPOSE 5000
+
+# Definir o comando para inicialização da API
+CMD ["python", "app.py"]

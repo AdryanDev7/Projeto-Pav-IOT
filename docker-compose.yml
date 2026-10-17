@@ -3,14 +3,26 @@ version: '3.8'
 services:
   db:
     image: postgres:15-alpine
-    container_name: postgres_iot_container
+    container_name: iot_db
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123
-      POSTGRES_DB: iot_db
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: iot_database
     ports:
       - "5433:5432"
     volumes:
+      - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-  
-  # A API entrará aqui depois...
+
+  api:
+    build: .
+    container_name: iot_api
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/iot_database
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
