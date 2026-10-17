@@ -1,4 +1,4 @@
-CREATE DATABASE iot_db;
+
 
 -- Como o comando \c é específico do psql, vamos garantir a conexão ou rodar os comandos abaixo após conectar no banco iot_db.
 -- Se preferir rodar direto no DBeaver, você cria o banco "iot_db" e executa o script dentro dele.

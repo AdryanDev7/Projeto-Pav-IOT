@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: 123
       POSTGRES_DB: iot_db
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
   
