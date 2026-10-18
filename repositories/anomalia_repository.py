@@ -1,22 +1,22 @@
-from entities.anomalia import Anomalia
 from config.database import db
+from entities.anomalia import Anomalia
+from entities.leitura import LeituraSensor
+from repositories.base_repository import BaseRepository
 
-class AnomaliaRepository:
-    @staticmethod
-    def salvar(anomalia):
-        db.session.add(anomalia)
-        db.session.commit()
-        return anomalia
 
-    @staticmethod
-    def listar_todos():
-        return Anomalia.query.all()
+class AnomaliaRepository(BaseRepository):
+    def __init__(self):
+        super().__init__(Anomalia)
 
-    @staticmethod
-    def buscar_por_id(id):
-        return Anomalia.query.get(id)
-
-    @staticmethod
-    def excluir(anomalia):
-        db.session.delete(anomalia)
-        db.session.commit()
+    def contar_por_sensor(self, sensor_id, inicio=None, fim=None):
+        """Quantas anomalias existem nas leituras de um sensor (com período opcional)."""
+        consulta = (
+            db.session.query(Anomalia)
+            .join(LeituraSensor, Anomalia.leitura_id == LeituraSensor.id)
+            .filter(LeituraSensor.sensor_id == sensor_id)
+        )
+        if inicio is not None:
+            consulta = consulta.filter(LeituraSensor.data_hora >= inicio)
+        if fim is not None:
+            consulta = consulta.filter(LeituraSensor.data_hora <= fim)
+        return consulta.count()

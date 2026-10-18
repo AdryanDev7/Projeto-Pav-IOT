@@ -1,22 +1,15 @@
-from entities.sensor import Sensor
 from config.database import db
+from entities.sensor import Sensor
+from repositories.base_repository import BaseRepository
 
-class SensorRepository:
-    @staticmethod
-    def salvar(sensor):
-        db.session.add(sensor)
-        db.session.commit()
-        return sensor
 
-    @staticmethod
-    def listar_todos():
-        return Sensor.query.all()
+class SensorRepository(BaseRepository):
+    def __init__(self):
+        super().__init__(Sensor)
 
-    @staticmethod
-    def buscar_por_id(id):
-        return Sensor.query.get(id)
+    def buscar_por_codigo_serial(self, codigo_serial):
+        return db.session.query(Sensor).filter_by(codigo_serial=codigo_serial).first()
 
-    @staticmethod
-    def excluir(sensor):
-        db.session.delete(sensor)
-        db.session.commit()
+    def existe_por_localizacao(self, localizacao_id):
+        consulta = db.session.query(Sensor).filter_by(localizacao_id=localizacao_id)
+        return db.session.query(consulta.exists()).scalar()

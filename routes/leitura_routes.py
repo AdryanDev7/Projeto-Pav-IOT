@@ -1,8 +1,7 @@
-from flask import Blueprint
-from controllers.leitura_controller import LeituraController
+from controllers.leitura_controller import LeituraListaController, LeituraItemController
 
-leitura_bp = Blueprint('leitura_bp', __name__, url_prefix='/api/leituras')
 
-leitura_bp.route('', methods=['POST'])(LeituraController.criar_leitura)
-leitura_bp.route('', methods=['GET'])(LeituraController.listar_leituras)
-leitura_bp.route('/<int:leitura_id>', methods=['DELETE'])(LeituraController.deletar_leitura)
+def registrar_rotas_leitura(api, service):
+    kwargs = {"service": service}
+    api.add_resource(LeituraListaController, "/leituras", resource_class_kwargs=kwargs)
+    api.add_resource(LeituraItemController, "/leituras/<int:registro_id>", resource_class_kwargs=kwargs)

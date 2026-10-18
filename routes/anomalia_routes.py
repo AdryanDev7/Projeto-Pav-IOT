@@ -1,7 +1,7 @@
-from flask import Blueprint
-from controllers.anomalia_controller import AnomaliaController
+from controllers.anomalia_controller import AnomaliaListaController, AnomaliaItemController
 
-anomalia_bp = Blueprint('anomalia_bp', __name__, url_prefix='/api/anomalias')
 
-anomalia_bp.route('', methods=['GET'])(AnomaliaController.listar_anomalias)
-anomalia_bp.route('/<int:anomalia_id>', methods=['DELETE'])(AnomaliaController.deletar_anomalia)
+def registrar_rotas_anomalia(api, service):
+    kwargs = {"service": service}
+    api.add_resource(AnomaliaListaController, "/anomalias", resource_class_kwargs=kwargs)
+    api.add_resource(AnomaliaItemController, "/anomalias/<int:registro_id>", resource_class_kwargs=kwargs)

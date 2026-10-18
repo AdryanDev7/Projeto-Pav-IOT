@@ -1,61 +1,66 @@
-# 🌐 Projeto PAV - Sistema de Análise de Dados de Sensores IoT
+# Projeto PAV - Sistema de Análise de Dados de Sensores IoT (API)
 
-Trabalho prático académico desenvolvido para a disciplina de Programação de Aplicações Visuais (PAV), focado na construção de uma API REST robusta em arquitetura em camadas para recolha, monitorização e análise de dados de sensores IoT.
+API REST em Python (Flask-RESTful + Flask-SQLAlchemy) com PostgreSQL, em arquitetura de camadas e dockerizada.
+A interface gráfica (Tkinter) é um projeto separado e roda fora do container.
 
----
+## Como executar (sem instalar nada além do Docker)
 
-## 🚀 Tecnologias Utilizadas
-* **Linguagem:** Python 3.13.7
-* **Framework Web:** Flask
-* **Mapeamento Objeto-Relacional (ORM):** Flask-SQLAlchemy
-* **Base de Dados Relacional:** PostgreSQL (rodando em contentor Docker, porta mapeada `5433:5432`)
-* **Ferramenta de Base de Dados:** DBeaver
-* **Testes de API:** Postman / Insomnia
+```bash
+docker compose up -d --build
+```
 
----
+- API: http://127.0.0.1:5000/api
+- PostgreSQL: `localhost:5433` (usuário `postgres`, senha `postgres`, banco `iot_database`)
+- O banco é inicializado pelo `init.sql`. Para recriar do zero: `docker compose down -v` e subir de novo.
+- Verificação automática dos requisitos (com a API no ar): `python scripts/verificar_api.py`
 
-## 📂 Arquitetura em Camadas
-O projeto segue estritamente os princípios de separação de responsabilidades e camadas:
-* **`config/`**: Configurações de conexão e inicialização da base de dados.
-* **`entities/`**: Modelos de dados e mapeamento ORM das tabelas (`localizacoes`, `sensores`, `leituras_sensores`, `anomalias`).
-* **`repositories/`**: Camada de persistência e interceção direta com a base de dados.
-* **`services/`**: Camada de lógica de negócio e validações estruturais.
-* **`controllers/`**: Camada de controlo para tratamento de requisições HTTP e formatação de respostas.
-* **`routes/`**: Definição de Blueprints e mapeamento de *endpoints* da API.
+## Arquitetura em camadas
 
----
+| Pasta | Responsabilidade |
+|---|---|
+| `config/` | Conexão e inicialização do banco (`DATABASE_URL`) |
+| `entities/` | Modelos SQLAlchemy (`EntidadeBase` abstrata + 4 entidades) |
+| `repositories/` | Acesso ao banco (`BaseRepository` + um repositório por entidade) |
+| `services/` | Regras de negócio e validações (`BaseService` + um service por entidade, detectores de anomalia, estatísticas) |
+| `controllers/` | Recursos Flask-RESTful: recebem a requisição e devolvem JSON/HTTP |
+| `routes/` | Registro dos endpoints e montagem das dependências |
 
-## 📊 Modelo de Dados (4 Tabelas)
-1. **`localizacoes`**: Armazena os setores, fábricas e coordenadas geográficas (latitude/longitude).
-2. **`sensores`**: Regista os dispositivos IoT, códigos seriais, tipos e níveis de bateria.
-3. **`leituras_sensores`**: Guarda o histórico temporal das medições efetuadas pelos sensores.
-4. **`anomalias`**: Regista alertas e falhas críticas geradas automaticamente pelo sistema.
+Orientação a objetos: herança (`EntidadeBase`, `BaseRepository`, `BaseService`, `RecursoBase`), polimorfismo
+(`to_dict`, `_validar`, `DetectorAnomalia.detectar`), construtores com injeção de dependência e encapsulamento
+(atributos `_repo`, `_modelo`, `_service`, `_limite`).
 
----
+## Modelo de dados (4 tabelas)
 
-## 📋 Regras de Negócio Implementadas (10 RNs)
+`localizacoes` 1—N `sensores` 1—N `leituras_sensores` 1—N `anomalias`
 
-1. **RN01 - Validação de Coordenadas Geográficas:** A latitude deve estar entre $-90$ e $90$ e a longitude entre $-180$ e $180$.
-2. **RN02 - Unicidade do Código Serial:** Cada sensor deve possuir um `codigo_serial` único no sistema.
-3. **RN03 - Obrigatoriedade de Associação:** Nenhum sensor pode ser cadastrado sem uma localização pré-existente válida.
-4. **RN04 - Validação do Nível de Bateria:** O nível de bateria deve obrigatoriamente situar-se entre $0$ e $100$.
-5. **RN05 - Controlo de Status Operacional:** Gestão de estados do sensor (*Ativo*, *Inativo*, *Em Manutenção*).
-6. **RN06 - Integridade de Referência nas Leituras:** O sensor associado a uma leitura deve existir obrigatoriamente.
-7. **RN07 - Obrigatoriedade de Parâmetros de Medição:** O valor da leitura e o nível da bateria são de preenchimento obrigatório.
-8. **RN08 - Deteção Automática de Anomalias Críticas:** Valores de leituras superiores a $90.0$ geram automaticamente um alerta na tabela de anomalias com severidade alta.
-9. **RN09 - Rastreabilidade Temporal:** Carimbo automático de data e hora em todas as leituras recebidas (`data_hora`).
-10. **RN10 - Consistência Relacional (Deleção Segura):** Validação de chaves estrangeiras para evitar registos órfãos na base de dados relacional.
+- `sensores.localizacao_id` → `ON DELETE RESTRICT`
+- `leituras_sensores.sensor_id` e `anomalias.leitura_id` → `ON DELETE CASCADE`
 
----
+## Endpoints (prefixo `/api`)
 
-## ⚙️ Como Executar o Projeto
+| Recurso | Endpoints |
+|---|---|
+| Localizações | `GET/POST /localizacoes` · `GET/PUT/DELETE /localizacoes/<id>` |
+| Sensores | `GET/POST /sensores` · `GET/PUT/DELETE /sensores/<id>` · `GET /sensores/<id>/estatisticas?inicio=&fim=` |
+| Leituras | `GET/POST /leituras` (filtros `sensor_id`, `inicio`, `fim`) · `GET/PUT/DELETE /leituras/<id>` |
+| Anomalias | `GET/POST /anomalias` · `GET/PUT/DELETE /anomalias/<id>` |
 
-1. **Subir o PostgreSQL via Docker:**
-   ```bash
-   docker-compose up -d
+Erros devolvem JSON `{"erro": "mensagem"}` com 400 (regra de negócio/dado inválido) ou 404 (não encontrado).
 
-2. **Instalar as Dependências:**
-   pip install flask flask-sqlalchemy psycopg2-binary
+## Regras de negócio
 
-3. **Executar a Aplicação:**
-   python app.py
+1. **RN01** - Latitude entre -90 e 90; longitude entre -180 e 180.
+2. **RN02** - `codigo_serial` único por sensor.
+3. **RN03** - Sensor só pode ser cadastrado em uma localização existente.
+4. **RN04** - Nível de bateria entre 0 e 100 (sensores e leituras).
+5. **RN05** - Status do sensor: `Ativo`, `Inativo` ou `Em Manutenção`.
+6. **RN06** - Leitura só pode ser registrada para um sensor existente.
+7. **RN07** - Campos obrigatórios (e do tipo correto) em todos os cadastros.
+8. **RN08** - Leitura com valor acima de 90.0 gera automaticamente uma anomalia de severidade **Crítica**.
+9. **RN09** - Data/hora da leitura é gerada automaticamente quando não informada; datas no futuro são recusadas.
+10. **RN10** - Deleção segura: não é possível excluir uma localização que possui sensores associados (HTTP 400).
+11. **RN11** - Sensor que não está `Ativo` não aceita novas leituras.
+12. **RN12** - Leitura com bateria abaixo de 15% gera uma anomalia de severidade **Média**.
+
+Análise de dados: `GET /sensores/<id>/estatisticas` devolve total de leituras, média, mínimo, máximo,
+desvio padrão e total de anomalias (com filtro opcional por período).

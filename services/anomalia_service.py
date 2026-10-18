@@ -1,33 +1,34 @@
-from repositories.anomalia_repository import AnomaliaRepository
 from entities.anomalia import Anomalia
+from services import validadores
+from services.base_service import BaseService
+from services.exceptions import RegraNegocioError
 
-class AnomaliaService:
-    @staticmethod
-    def listar_anomalias():
-        anomalias = AnomaliaRepository.listar_todos()
-        return [
-            {
-                "id": a.id,
-                "leitura_id": a.leitura_id,
-                "descricao_alerta": a.descricao_alerta,
-                "severidade": a.severidade
-            } for a in anomalias
-        ]
+SEVERIDADES_VALIDAS = ("Baixa", "Média", "Alta", "Crítica")
 
-    @staticmethod
-    def criar_anomalia(dados):
-        nova_anomalia = Anomalia(
-            leitura_id=dados.get("leitura_id"),
-            descricao_alerta=dados.get("descricao_alerta"),
-            severidade=dados.get("severidade")
-        )
-        AnomaliaRepository.salvar(nova_anomalia)
-        return nova_anomalia
 
-    @staticmethod
-    def deletar_anomalia(id):
-        anomalia = AnomaliaRepository.buscar_por_id(id)
-        if not anomalia:
-            return False
-        AnomaliaRepository.excluir(anomalia)
-        return True
+class AnomaliaService(BaseService):
+    _ENTIDADE = Anomalia
+    _MSG_NAO_ENCONTRADO = "Anomalia não encontrada."
+    _MSG_INTEGRIDADE = "Violação de integridade: a leitura informada não existe."
+
+    def __init__(self, repositorio, leitura_repositorio):
+        super().__init__(repositorio)
+        self._leitura_repo = leitura_repositorio
+
+    def _validar(self, dados, id_atual=None):
+        validadores.exigir_campos(dados, ("leitura_id", "descricao_alerta", "severidade"))  # RN07
+        leitura_id = validadores.inteiro(dados, "leitura_id")
+        descricao = validadores.texto(dados, "descricao_alerta", 500)
+        severidade = validadores.texto(dados, "severidade", 20)
+
+        if severidade not in SEVERIDADES_VALIDAS:
+            raise RegraNegocioError("Severidade inválida. Use: " + ", ".join(SEVERIDADES_VALIDAS) + ".")
+
+        if self._leitura_repo.buscar_por_id(leitura_id) is None:
+            raise RegraNegocioError("A leitura informada não existe.")
+
+        return {
+            "leitura_id": leitura_id,
+            "descricao_alerta": descricao,
+            "severidade": severidade,
+        }

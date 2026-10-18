@@ -1,16 +1,10 @@
-from services.anomalia_service import AnomaliaService
-from flask import jsonify
+from controllers.base_controller import ListaController, ItemController
 
-class AnomaliaController:
-    @staticmethod
-    def listar_anomalias():
-        anomalias = AnomaliaService.listar_anomalias()
-        return jsonify(anomalias), 200
 
-    @staticmethod
-    def deletar_anomalia(anomalia_id):
-        try:
-            AnomaliaService.deletar_anomalia(anomalia_id)
-            return jsonify({"mensagem": "Anomalia deletada com sucesso!"}), 200
-        except ValueError as e:
-            return jsonify({"erro": str(e)}), 404
+class AnomaliaListaController(ListaController):
+    _MSG_CRIADO = "Anomalia registada com sucesso!"
+
+
+class AnomaliaItemController(ItemController):
+    _MSG_ATUALIZADO = "Anomalia atualizada com sucesso!"
+    _MSG_EXCLUIDO = "Anomalia deletada com sucesso!"

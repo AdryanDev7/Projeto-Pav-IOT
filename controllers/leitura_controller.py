@@ -1,30 +1,21 @@
-from flask import request, jsonify
-from services.leitura_service import LeituraService
+from flask import request
 
-class LeituraController:
-    @staticmethod
-    def criar_leitura():
-        try:
-            dados = request.get_json()
-            leitura = LeituraService.criar_leitura(dados)
-            return jsonify({
-                "mensagem": "Leitura registada com sucesso!",
-                "leitura_id": leitura.id
-            }), 201
-        except ValueError as e:
-            return jsonify({"erro": str(e)}), 400
-        except Exception as e:
-            return jsonify({"erro": "Erro interno no servidor: " + str(e)}), 500
+from controllers.base_controller import ListaController, ItemController
 
-    @staticmethod
-    def listar_leituras():
-        leituras = LeituraService.listar_leituras()
-        return jsonify(leituras), 200
 
-    @staticmethod
-    def deletar_leitura(leitura_id):
-        try:
-            LeituraService.deletar_leitura(leitura_id)
-            return jsonify({"mensagem": "Leitura deletada com sucesso!"}), 200
-        except ValueError as e:
-            return jsonify({"erro": str(e)}), 404
+class LeituraListaController(ListaController):
+    _MSG_CRIADO = "Leitura registada com sucesso!"
+
+    def get(self):
+        # Filtros opcionais: /leituras?sensor_id=1&inicio=2026-10-01 00:00:00&fim=2026-10-31 23:59:59
+        leituras = self._service.listar_filtrado(
+            sensor_id=request.args.get("sensor_id"),
+            inicio=request.args.get("inicio"),
+            fim=request.args.get("fim"),
+        )
+        return leituras, 200
+
+
+class LeituraItemController(ItemController):
+    _MSG_ATUALIZADO = "Leitura atualizada com sucesso!"
+    _MSG_EXCLUIDO = "Leitura deletada com sucesso!"
