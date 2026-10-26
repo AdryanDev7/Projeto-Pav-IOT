@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: iot
+      POSTGRES_PASSWORD: iot123
+      POSTGRES_DB: iotdb
+    ports:
+      - "5432:5432"            # permite conferir os dados com DBeaver/psql durante a demo
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U iot -d iotdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://iot:iot123@db:5432/iotdb
+      # --- valores para DEMONSTRAÇÃO (rápidos). Valores do enunciado entre parênteses:
+      AGREGACAO_SEGUNDOS: "30"          # (300 = 5 min)
+      SEGUNDOS_ESCALONAMENTO: "60"      # (900 = 15 min)
+      INTERVALO_JOBS_SEGUNDOS: "10"     # (60)
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
