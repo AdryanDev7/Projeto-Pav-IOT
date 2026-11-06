@@ -1,0 +1,8 @@
+2026-11-05 14:45:41,283 | ERROR | ESCALONAMENTO alerta_id=1 sensor_id=1: sem reconhecimento em 60s. Aviso enviado à supervisão: Carlos Supervisor
+2026-11-05 18:55:51,283 | ERROR | ESCALONAMENTO alerta_id=2 sensor_id=1: sem reconhecimento em 60s. Aviso enviado à supervisão: Carlos Supervisor
+2026-11-05 18:56:31,284 | ERROR | ESCALONAMENTO alerta_id=3 sensor_id=1: sem reconhecimento em 60s. Aviso enviado à supervisão: Carlos Supervisor
+2026-11-05 18:58:11,283 | ERROR | ESCALONAMENTO alerta_id=4 sensor_id=1: sem reconhecimento em 60s. Aviso enviado à supervisão: Carlos Supervisor
+2026-11-05 18:58:51,283 | ERROR | ESCALONAMENTO alerta_id=5 sensor_id=1: sem reconhecimento em 60s. Aviso enviado à supervisão: Carlos Supervisor
+2026-11-05 19:01:51,283 | ERROR | ESCALONAMENTO alerta_id=6 sensor_id=1: sem reconhecimento em 60s. Aviso enviado à supervisão: Carlos Supervisor
+2026-11-05 19:02:21,283 | ERROR | ESCALONAMENTO alerta_id=7 sensor_id=1: sem reconhecimento em 60s. Aviso enviado à supervisão: Carlos Supervisor
+2026-11-05 19:02:51,283 | ERROR | ESCALONAMENTO alerta_id=8 sensor_id=1: sem reconhecimento em 60s. Aviso enviado à supervisão: Carlos Supervisor
